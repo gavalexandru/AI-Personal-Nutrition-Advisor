@@ -6,29 +6,97 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NutritionAdvisor.Client</title>
     <base href="/" />
+
     <link rel="preload" id="webassembly" />
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="css/app.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
     <link href="NutritionAdvisor.Client.styles.css" rel="stylesheet" />
     <script type="importmap"></script>
+
+    <style>
+        body {
+            margin: 0;
+            background: #f5f6fa;
+        }
+
+        #app {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .loading-progress {
+            width: 80px;
+            height: 80px;
+        }
+
+        .loading-progress circle {
+            fill: none;
+            stroke-width: 6;
+            stroke-linecap: round;
+            transform-origin: 50% 50%;
+            animation: rotate 2s linear infinite;
+        }
+
+        .loading-progress circle:first-child {
+            stroke: #e0e0e0;
+        }
+
+        .loading-progress circle:last-child {
+            stroke: #6c63ff;
+            stroke-dasharray: 150;
+            stroke-dashoffset: 100;
+            animation: dash 1.5s ease-in-out infinite;
+        }
+
+        .loading-progress-text {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        @keyframes rotate {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes dash {
+            0% {
+                stroke-dashoffset: 150;
+            }
+            50% {
+                stroke-dashoffset: 75;
+            }
+            100% {
+                stroke-dashoffset: 150;
+            }
+        }
+    </style>
+
 </head>
 
 <body>
-    <div id="app">
-        <svg class="loading-progress">
-            <circle r="40%" cx="50%" cy="50%" />
-            <circle r="40%" cx="50%" cy="50%" />
-        </svg>
-        <div class="loading-progress-text"></div>
-    </div>
 
-    <div id="blazor-error-ui">
-        An unhandled error has occurred.
-        <a href="." class="reload">Reload</a>
-        <span class="dismiss">🗙</span>
-    </div>
-    <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
+<div id="app">
+    <svg class="loading-progress">
+        <circle r="40%" cx="50%" cy="50%" />
+        <circle r="40%" cx="50%" cy="50%" />
+    </svg>
+    <div class="loading-progress-text">Loading NutritionAdvisor...</div>
+</div>
+
+<div id="blazor-error-ui">
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>
+
+<script src="_framework/blazor.webassembly.js"></script>
+
 </body>
 
 </html>

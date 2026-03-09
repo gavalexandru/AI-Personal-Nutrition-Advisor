@@ -11,5 +11,6 @@ public class Subscription
     public DateTime StartDate { get; private set; }
     public DateTime? EndDate { get; private set; }
 
-    public bool IsActive { get; private set; }
+    public bool IsActive => DateTime.UtcNow >= StartDate && EndDate > DateTime.UtcNow;
+    
 }

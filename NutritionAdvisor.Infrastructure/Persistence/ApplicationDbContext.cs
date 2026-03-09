@@ -1,10 +1,11 @@
+using NutritionAdvisor.Application.Common.Interfaces;
 using NutritionAdvisor.Domain.Entities;
 
 namespace NutritionAdvisor.Infrastructure.Persistence;
 
 using Microsoft.EntityFrameworkCore;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : DbContext, IApplicationDbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
