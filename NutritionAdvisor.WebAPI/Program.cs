@@ -2,7 +2,10 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using NutritionAdvisor.Application.Auth.Commands.Register;
+using NutritionAdvisor.Domain.Entities;
+using NutritionAdvisor.Domain.Enums;
 using NutritionAdvisor.Infrastructure;
+using NutritionAdvisor.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,7 +56,58 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>(); 
+    context.Database.EnsureCreated();
+    
+    if (!context.Allergies.Any())
+    {
+        context.Allergies.AddRange(
+            new Allergy("Peanuts"),               
+            new Allergy("Tree Nuts"),             
+            new Allergy("Milk (Dairy/Lactose)"),  
+            new Allergy("Eggs"),                  
+            new Allergy("Wheat (Gluten)"),        
+            new Allergy("Soy"),                   
+            new Allergy("Fish"),                  
+            new Allergy("Shellfish"),             
+            new Allergy("Sesame"),                
+            new Allergy("Mustard"),               
+            new Allergy("Celery"),                
+            new Allergy("Sulfites"),              
+            new Allergy("Lupin")                 
+        );
+    }
+    
+    if (!context.DietPreferences.Any())
+    {
+        context.DietPreferences.AddRange(
+            new DietPreference(DietPreferenceType.Balanced),
+            new DietPreference(DietPreferenceType.Vegetarian),
+            new DietPreference(DietPreferenceType.Vegan),
+            new DietPreference(DietPreferenceType.Pescatarian),
+            new DietPreference(DietPreferenceType.Keto),
+            new DietPreference(DietPreferenceType.Paleo),
+            new DietPreference(DietPreferenceType.Carnivore),
+            new DietPreference(DietPreferenceType.Mediterranean)
+        );
+    }
+
+    context.SaveChanges();
+}
+
+app.UseSwagger();
+app.UseSwaggerUI(c => 
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Nutrition Advisor API");
+    c.RoutePrefix = string.Empty; 
+});
 
 app.UseHttpsRedirection();
 app.UseCors("BlazorClientPolicy"); 
