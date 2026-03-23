@@ -188,3 +188,234 @@ body {
     }
 }
 
+/* --- PROFILE DASHBOARD STYLES --- */
+.profile-container {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+}
+
+.profile-header {
+    margin-bottom: 2rem;
+}
+
+.profile-header h2 {
+    font-weight: 800;
+    color: #111827;
+    letter-spacing: -0.025em;
+}
+
+.profile-header p {
+    color: #6B7280;
+}
+
+.profile-card {
+    background: #FFFFFF;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+    border: 1px solid #F3F4F6;
+    margin-bottom: 2rem;
+}
+
+.profile-section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #374151;
+}
+
+.biometrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+/* --- PREMIUM CHIPS (Pill Toggles) --- */
+.chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.chip {
+    padding: 0.6rem 1.25rem;
+    border-radius: 9999px;
+    background: #F3F4F6;
+    color: #4B5563;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.chip:hover {
+    background: #E5E7EB;
+}
+
+.chip.selected {
+    background: #ECFDF5;
+    color: #059669;
+    border-color: #10B981;
+    box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.1);
+}
+
+select.form-control-custom {
+    appearance: none; 
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1.2rem;
+    padding-right: 2.5rem; 
+    cursor: pointer;
+}
+
+
+.page {
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+
+.content {
+    padding-top: 1.5rem;
+    width: 100%;
+    max-width: 100%;
+}
+
+
+.sidebar {
+    display: none !important;
+}
+
+
+html, body {
+    height: auto !important;
+    min-height: 100%;
+    overflow-y: auto !important;
+    background-color: #F3F4F6;
+}
+
+
+#app {
+    height: auto !important;
+    display: block !important;
+}
+
+.profile-container {
+    max-width: 800px;
+    padding: 2rem 1rem;
+    
+    margin: 20px auto 0;
+}
+
+/* --- DASHBOARD SPECIFIC --- */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 20px;
+    border: 1px solid #F3F4F6;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #111827;
+}
+
+.stat-label {
+    color: #6B7280;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.progress-bar-container {
+    height: 8px;
+    background: #F3F4F6;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #10B981; 
+    border-radius: 4px;
+    transition: width 0.5s ease-out;
+}
+
+.meal-card {
+    background: white;
+    border-radius: 24px;
+    overflow: hidden;
+    border: 1px solid #F3F4F6;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; 
+}
+
+.meal-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+}
+
+.meal-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 99px;
+    background: #ECFDF5;
+    color: #059669;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+/* Buton de logout cu aspect subtil dar premium */
+.btn-logout {
+    background: transparent;
+    border: 1px solid #FCA5A5;
+    color: #DC2626;
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-logout:hover {
+    background: #FEF2F2;
+    transform: translateY(-1px);
+}
+
+.btn-profile-link {
+    background: #F3F4F6;
+    color: #374151;
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    margin-right: 0.5rem;
+}

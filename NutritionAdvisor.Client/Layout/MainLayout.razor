@@ -1,16 +1,20 @@
 ﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
+<div class="main-wrapper">
+    <main role="main">
+        @Body
     </main>
 </div>
+
+<style>
+    /* Resetăm layout-ul pentru a permite scroll natural */
+    .main-wrapper {
+        min-height: 100vh;
+        background-color: #F3F4F6; /* Fundalul gri deschis din tema ta */
+        display: block;
+    }
+
+    main {
+        padding: 2rem 0;
+    }
+</style>

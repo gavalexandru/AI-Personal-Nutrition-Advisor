@@ -1,10 +1,11 @@
 @page "/login"
 @layout AuthLayout
 @using System.ComponentModel.DataAnnotations
-@using System.Net.Http.Json
+@using NutritionAdvisor.Client.Models
+@using NutritionAdvisor.Client.Models.Profile
 @inject HttpClient Http
 @inject NavigationManager NavManager
-@inject NutritionAdvisor.Client.Auth.CookieAuthStateProvider AuthStateProvider
+@inject Auth.CookieAuthStateProvider AuthStateProvider
 
 <div class="auth-wrapper">
 
@@ -81,7 +82,17 @@ private async Task HandleLogin()
     if(response.IsSuccessStatusCode)
     {
         AuthStateProvider.NotifyUserAuthentication();
-        NavManager.NavigateTo("https://www.google.com/");
+
+        try
+        {
+            var profile = await Http.GetFromJsonAsync<UserProfileModel>("api/profile");
+
+            NavManager.NavigateTo(profile is { HeightCm: > 0 } ? "/" : "/profile");
+        }
+        catch
+        {
+            NavManager.NavigateTo("/profile");
+        }
     }
     else
     {

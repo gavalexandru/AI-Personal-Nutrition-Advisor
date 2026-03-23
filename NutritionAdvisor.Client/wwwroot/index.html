@@ -15,12 +15,21 @@
     <script type="importmap"></script>
 
     <style>
+        /* Fundalul general al paginii */
         body {
             margin: 0;
-            background: #f5f6fa;
+            background-color: #f3f4f6; /* Griul deschis din tema ta */
+            font-family: "Inter", sans-serif;
         }
 
+        /* Stilul pentru #app trebuie să fie MINIM 100vh, nu fix 100vh */
         #app {
+            min-height: 100vh;
+            display: block; /* Scoatem flex-ul de aici ca să nu strice layout-ul final */
+        }
+
+        /* Creăm un container special DOAR pentru animația de loading */
+        .loading-container {
             height: 100vh;
             display: flex;
             justify-content: center;
@@ -46,7 +55,7 @@
         }
 
         .loading-progress circle:last-child {
-            stroke: #6c63ff;
+            stroke: #10B981; /* Schimbat în VERDE ca să se potrivească cu brandul tău */
             stroke-dasharray: 150;
             stroke-dashoffset: 100;
             animation: dash 1.5s ease-in-out infinite;
@@ -54,39 +63,30 @@
 
         .loading-progress-text {
             margin-top: 15px;
-            font-size: 0.9rem;
-            color: #666;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #374151;
         }
 
-        @keyframes rotate {
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
+        @keyframes rotate { 100% { transform: rotate(360deg); } }
         @keyframes dash {
-            0% {
-                stroke-dashoffset: 150;
-            }
-            50% {
-                stroke-dashoffset: 75;
-            }
-            100% {
-                stroke-dashoffset: 150;
-            }
+            0% { stroke-dashoffset: 150; }
+            50% { stroke-dashoffset: 75; }
+            100% { stroke-dashoffset: 150; }
         }
     </style>
-
 </head>
 
 <body>
 
 <div id="app">
-    <svg class="loading-progress">
-        <circle r="40%" cx="50%" cy="50%" />
-        <circle r="40%" cx="50%" cy="50%" />
-    </svg>
-    <div class="loading-progress-text">Loading NutritionAdvisor...</div>
+    <div class="loading-container">
+        <svg class="loading-progress">
+            <circle r="40%" cx="50%" cy="50%" />
+            <circle r="40%" cx="50%" cy="50%" />
+        </svg>
+        <div class="loading-progress-text">Preparing your nutrition plan...</div>
+    </div>
 </div>
 
 <div id="blazor-error-ui">
@@ -98,5 +98,4 @@
 <script src="_framework/blazor.webassembly.js"></script>
 
 </body>
-
 </html>

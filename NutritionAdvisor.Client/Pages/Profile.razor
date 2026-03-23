@@ -1,0 +1,192 @@
+@page "/profile"
+@using NutritionAdvisor.Domain.Enums
+@using NutritionAdvisor.Client.Models.Profile
+@inject HttpClient Http
+@inject NavigationManager NavManager
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+<div class="profile-container">
+    <div class="profile-header">
+        <h2>My Nutrition Profile</h2>
+        <p>Customize your biometrics, allergies, and dietary preferences for the AI.</p>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="text-center py-5">
+            <span class="spinner-border text-success"></span>
+            <p class="mt-2 text-muted">Loading your data...</p>
+        </div>
+    }
+    else
+    {
+        @if (!string.IsNullOrEmpty(_statusMessage))
+        {
+            <div class="alert alert-success">@_statusMessage</div>
+        }
+
+        <EditForm Model="_profileModel" OnValidSubmit="SaveProfileAsync">
+            
+            <div class="profile-card">
+                <h3 class="profile-section-title">📊 Biometrics & Goals</h3>
+                <div class="biometrics-grid">
+                    <div class="form-group">
+                        <label class="form-label text-muted small fw-bold">Height (cm)</label>
+                        <InputNumber class="form-control-custom" @bind-Value="_profileModel.HeightCm" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label text-muted small fw-bold">Weight (kg)</label>
+                        <InputNumber class="form-control-custom" @bind-Value="_profileModel.WeightKg" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label text-muted small fw-bold">Daily Calories</label>
+                        <InputNumber class="form-control-custom" @bind-Value="_profileModel.DailyCalorieTarget" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label text-muted small fw-bold">Activity Level</label>
+                        <InputSelect class="form-control-custom" @bind-Value="_profileModel.ActivityLevel">
+                            @foreach (var level in Enum.GetValues<ActivityLevel>())
+                            {
+                                var displayLevel = System.Text.RegularExpressions.Regex.Replace(level.ToString(), "([a-z])([A-Z])", "$1 $2");
+                                <option value="@level">@displayLevel</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label text-muted small fw-bold">Primary Goal</label>
+                        <InputSelect class="form-control-custom" @bind-Value="_profileModel.Goal">
+                            @foreach (var goal in Enum.GetValues<GoalType>())
+                            {
+                                var displayGoal = System.Text.RegularExpressions.Regex.Replace(goal.ToString(), "([a-z])([A-Z])", "$1 $2");
+                                <option value="@goal">@displayGoal</option>
+                            }
+                        </InputSelect>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-card">
+                <h3 class="profile-section-title">🥗 Dietary Preferences</h3>
+                <p class="text-muted small mb-3">Select the diets you follow.</p>
+                <div class="chip-group">
+                    @foreach (var diet in _availableDiets)
+                    {
+                        var isSelected = _selectedDietIds.Contains(diet.Id);
+                        <div class="chip @(isSelected ? "selected" : "")" 
+                             @onclick="() => ToggleDiet(diet.Id)">
+                            @diet.Name
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="profile-card">
+                <h3 class="profile-section-title">🥜 Allergies & Intolerances</h3>
+                <p class="text-muted small mb-3">Select any ingredients you must strictly avoid.</p>
+                <div class="chip-group">
+                    @foreach (var allergy in _availableAllergies)
+                    {
+                        var isSelected = _selectedAllergyIds.Contains(allergy.Id);
+                        <div class="chip @(isSelected ? "selected" : "")" 
+                             @onclick="() => ToggleAllergy(allergy.Id)">
+                            @allergy.Name
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <button type="submit" class="btn-auth w-auto px-5 mb-5" disabled="@_isSaving">
+                @if (_isSaving)
+                {
+                    <span class="spinner-border spinner-border-sm"></span> <span>Saving...</span>
+                }
+                else
+                {
+                    <span>Save Complete Profile</span>
+                }
+            </button>
+        </EditForm>
+    }
+</div>
+
+@code {
+    private bool _isLoading = true;
+    private bool _isSaving = false;
+    private string _statusMessage = "";
+
+    private readonly UserProfileModel _profileModel = new();
+
+    private List<LookupItem> _availableAllergies = [];
+    private List<LookupItem> _availableDiets = [];
+
+    private List<Guid> _selectedAllergyIds = [];
+    private List<Guid> _selectedDietIds = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _availableAllergies = await Http.GetFromJsonAsync<List<LookupItem>>("api/lookup/allergies") ?? new();
+        _availableDiets = await Http.GetFromJsonAsync<List<LookupItem>>("api/lookup/diet-preferences") ?? new();
+
+        try
+        {
+            var userAllergies = await Http.GetFromJsonAsync<List<LookupItem>>("api/profile/allergies");
+            if (userAllergies != null) _selectedAllergyIds = userAllergies.Select(a => a.Id).ToList();
+
+            var userDiets = await Http.GetFromJsonAsync<List<LookupItem>>("api/profile/diet-preferences");
+            if (userDiets != null) _selectedDietIds = userDiets.Select(d => d.Id).ToList();
+            
+        }
+        catch { /* Ignore errors for now, we'll handle them on save */ }
+
+        _isLoading = false;
+    }
+
+    private void ToggleAllergy(Guid id)
+    {
+        if (_selectedAllergyIds.Contains(id)) _selectedAllergyIds.Remove(id);
+        else _selectedAllergyIds.Add(id);
+    }
+
+    private void ToggleDiet(Guid id)
+    {
+        if (_selectedDietIds.Contains(id)) _selectedDietIds.Remove(id);
+        else _selectedDietIds.Add(id);
+    }
+
+    private async Task SaveProfileAsync()
+    {
+        _isSaving = true;
+        _statusMessage = "";
+
+        try
+        {
+            
+            var profileResponse = await Http.PostAsJsonAsync("api/profile", _profileModel);
+            if (!profileResponse.IsSuccessStatusCode)
+            {
+                var error = await profileResponse.Content.ReadAsStringAsync();
+                throw new Exception($"Profile Error: {error}");
+            }
+
+            
+            var allergyRequest = new UpdateUserAllergiesRequest { AllergyIds = _selectedAllergyIds };
+            var allergyResponse = await Http.PutAsJsonAsync("api/profile/allergies", allergyRequest);
+            if (!allergyResponse.IsSuccessStatusCode) throw new Exception("Failed to update allergies.");
+
+            
+            var dietRequest = new UpdateUserDietPreferencesRequest { DietPreferenceIds = _selectedDietIds };
+            var dietResponse = await Http.PutAsJsonAsync("api/profile/diet-preferences", dietRequest);
+            if (!dietResponse.IsSuccessStatusCode) throw new Exception("Failed to update diets.");
+
+            _statusMessage = "Profile successfully updated!";
+            
+            NavManager.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            _statusMessage = $"Error: {ex.Message}";
+        }
+
+        _isSaving = false;
+    }
+}

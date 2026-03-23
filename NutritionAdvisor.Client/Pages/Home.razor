@@ -1,0 +1,94 @@
+@page "/"
+@using NutritionAdvisor.Client.Auth
+@using NutritionAdvisor.Client.Models.Dashboard
+@inject HttpClient Http
+@inject NavigationManager NavManager
+@inject CookieAuthStateProvider AuthStateProvider
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+<div class="profile-container">
+    <div class="profile-header d-flex justify-content-between align-items-start">
+        <div>
+            <h2>Welcome back, @_userName! 👋</h2>
+            <p>Here's your nutrition overview for today.</p>
+        </div>
+        <div class="d-flex align-items-center">
+            <a href="/user-profile" class="btn-profile-link">👤 My Profile</a>
+            <button @onclick="HandleLogout" class="btn-logout">Logout</button>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="stat-card">
+            <span class="stat-label">Calories</span>
+            <div class="stat-value">@_stats.CaloriesConsumed / @_stats.CaloriesTarget</div>
+            <div class="progress-bar-container">
+                <div class="progress-fill" style="width: @GetProgress(_stats.CaloriesConsumed, _stats.CaloriesTarget)%"></div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Protein</span>
+            <div class="stat-value">@_stats.ProteinGrams g</div>
+            <small class="text-muted">Target: 160g</small>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Water Intake</span>
+            <div class="stat-value">1.2 / 2.5 L</div>
+            <div class="progress-bar-container">
+                <div class="progress-fill" style="width: 48%; background: #3B82F6;"></div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="profile-section-title mt-5">🤖 AI Meal Recommendations</h3>
+    <div class="row g-4 align-items-stretch"> @* align-items-stretch rezolvă înălțimea *@
+        @foreach (var meal in _recommendations)
+        {
+            <div class="col-md-4">
+                <div class="meal-card p-4 h-100"> @* h-100 asigură uniformitatea *@
+                    <div>
+                        <span class="meal-badge">@meal.Type</span>
+                        <h4 class="fw-bold">@meal.Title</h4>
+                        <p class="text-muted small">@meal.Description</p>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="fw-bold text-success">@meal.Calories kcal</span>
+                        <button class="btn btn-sm btn-outline-dark rounded-pill">View Recipe</button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+
+@code {
+    private string _userName = "User";
+    private readonly DailyStats _stats = new() { CaloriesConsumed = 1450, CaloriesTarget = 2200, ProteinGrams = 110 };
+    private List<MealRecommendation> _recommendations = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        _userName = authState.User.Identity?.Name ?? "User";
+
+        _recommendations =
+        [
+            new MealRecommendation { Type = "Breakfast", Title = "Avocado Toast", Description = "Poached eggs with smashed avocado on sourdough bread with chili flakes.", Calories = 350 },
+            new MealRecommendation { Type = "Lunch", Title = "Quinoa Salad", Description = "Mediterranean style.", Calories = 520 },
+            new MealRecommendation { Type = "Dinner", Title = "Grilled Salmon", Description = "With roasted asparagus.", Calories = 610 }
+        ];
+    }
+
+    private async Task HandleLogout()
+    {
+        await Http.PostAsync("api/auth/logout", null);
+        
+        AuthStateProvider.NotifyUserLogout();
+        
+        NavManager.NavigateTo("/login");
+    }
+
+    private static double GetProgress(double current, double target) 
+        => target > 0 ? Math.Min((current / target) * 100, 100) : 0;
+}

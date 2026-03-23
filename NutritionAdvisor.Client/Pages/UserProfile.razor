@@ -1,0 +1,221 @@
+@page "/user-profile"
+@using NutritionAdvisor.Domain.Enums
+@using System.Text.RegularExpressions
+@using NutritionAdvisor.Client.Models.Profile
+@inject HttpClient Http
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+<div class="profile-container">
+    <div class="profile-header d-flex justify-content-between align-items-center">
+        <div>
+            <h2>Settings & Profile</h2>
+            <p>Manage your identity, health parameters, and preferences.</p>
+        </div>
+        <a href="/" class="btn-profile-link">← Back to Dashboard</a>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="text-center py-5"><span class="spinner-border text-success"></span></div>
+    }
+    else
+    {
+        <EditForm Model="_profileModel" OnValidSubmit="HandleSaveAll">
+            <DataAnnotationsValidator />
+
+            <div class="profile-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="profile-section-title m-0">👤 Personal Information</h3>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-light text-dark border">Role: @_profileModel.Role</span>
+                        <span class="badge bg-success text-white">Plan: @_profileModel.Subscription</span>
+                    </div>
+                </div>
+                
+                <div class="biometrics-grid">
+                    <div class="form-group">
+                        <label class="form-label text-muted small fw-bold">Full Name</label>
+                        <InputText class="form-control-custom" @bind-Value="_profileModel.FullName" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label text-muted small fw-bold">Email Address</label>
+                        <input class="form-control-custom" value="@_profileModel.Email" disabled />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label text-muted small fw-bold">Date of Birth</label>
+                        <InputDate class="form-control-custom" @bind-Value="_profileModel.DateOfBirth" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label text-muted small fw-bold">Gender</label>
+                        <InputSelect class="form-control-custom" @bind-Value="_profileModel.Gender">
+                            @foreach (var g in Enum.GetValues<Gender>()) { <option value="@g">@g</option> }
+                        </InputSelect>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-card">
+                <h3 class="profile-section-title">📊 Body Metrics & Goals</h3>
+                <div class="biometrics-grid">
+                    <div class="form-group">
+                        <label class="form-label text-muted small fw-bold">Height (cm)</label>
+                        <InputNumber class="form-control-custom" @bind-Value="_profileModel.HeightCm" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label text-muted small fw-bold">Weight (kg)</label>
+                        <InputNumber class="form-control-custom" @bind-Value="_profileModel.WeightKg" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label text-muted small fw-bold">Daily Calorie Target</label>
+                        <InputNumber class="form-control-custom" @bind-Value="_profileModel.DailyCalorieTarget" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label text-muted small fw-bold">Activity Level</label>
+                        <InputSelect class="form-control-custom" @bind-Value="_profileModel.ActivityLevel">
+                            @foreach (var level in Enum.GetValues<ActivityLevel>()) {
+                                var displayLevel = Regex.Replace(level.ToString(), "([a-z])([A-Z])", "$1 $2");
+                                <option value="@level">@displayLevel</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label text-muted small fw-bold">Primary Goal</label>
+                        <InputSelect class="form-control-custom" @bind-Value="_profileModel.Goal">
+                            @foreach (var goal in Enum.GetValues<GoalType>()) {
+                                var displayGoal = Regex.Replace(goal.ToString(), "([a-z])([A-Z])", "$1 $2");
+                                <option value="@goal">@displayGoal</option>
+                            }
+                        </InputSelect>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-card">
+                <h3 class="profile-section-title">🥗 Diet & Allergies</h3>
+                <label class="text-muted small fw-bold d-block mb-2">My Diets</label>
+                <div class="chip-group mb-4">
+                    @foreach (var d in _availableDiets) {
+                        <div class="chip @(_selectedDietIds.Contains(d.Id) ? "selected" : "")" @onclick="() => ToggleItem(_selectedDietIds, d.Id)">@d.Name</div>
+                    }
+                </div>
+
+                <label class="text-muted small fw-bold d-block mb-2">My Allergies</label>
+                <div class="chip-group">
+                    @foreach (var a in _availableAllergies) {
+                        <div class="chip @(_selectedAllergyIds.Contains(a.Id) ? "selected" : "")" @onclick="() => ToggleItem(_selectedAllergyIds, a.Id)">@a.Name</div>
+                    }
+                </div>
+            </div>
+
+            <div class="d-flex gap-3">
+                <button type="submit" class="btn-auth w-auto px-5" disabled="@_isSaving">
+                    @(_isSaving ? "Saving..." : "Save All Changes")
+                </button>
+                @if (!string.IsNullOrEmpty(_statusMessage)) { <span class="align-self-center text-success fw-bold">@_statusMessage</span> }
+            </div>
+        </EditForm>
+    }
+</div>
+
+@code {
+    public class FullProfileModel : UserProfileModel {
+        public string FullName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public Gender Gender { get; set; }
+        public DateTime DateOfBirth { get; set; } = DateTime.Today.AddYears(-20);
+        public RoleType Role { get; set; }
+        public SubscriptionType Subscription { get; set; }
+    }
+
+    public class UpdatePersonalInfoRequest {
+        public string FullName { get; set; } = "";
+        public Gender Gender { get; set; }
+        public DateTime DateOfBirth { get; set; }
+    }
+
+    private readonly FullProfileModel _profileModel = new();
+    private bool _isLoading = true, _isSaving;
+    private string _statusMessage = "";
+    private List<LookupItem> _availableAllergies = [], _availableDiets = [];
+    private List<Guid> _selectedAllergyIds = [], _selectedDietIds = [];
+
+    protected override async Task OnInitializedAsync() {
+        _availableAllergies = await Http.GetFromJsonAsync<List<LookupItem>>("api/lookup/allergies") ?? [];
+        _availableDiets = await Http.GetFromJsonAsync<List<LookupItem>>("api/lookup/diet-preferences") ?? [];
+
+        try {
+            var personalInfo = await Http.GetFromJsonAsync<FullProfileModel>("api/profile/personal-info");
+            var profileBio = await Http.GetFromJsonAsync<UserProfileModel>("api/profile");
+
+            if (personalInfo != null) {
+                _profileModel.FullName = personalInfo.FullName;
+                _profileModel.Email = personalInfo.Email;
+                _profileModel.Gender = personalInfo.Gender;
+                _profileModel.DateOfBirth = personalInfo.DateOfBirth;
+                _profileModel.Role = personalInfo.Role;
+                _profileModel.Subscription = personalInfo.Subscription;
+            }
+            
+            if (profileBio != null) {
+                _profileModel.HeightCm = profileBio.HeightCm;
+                _profileModel.WeightKg = profileBio.WeightKg;
+                _profileModel.Goal = profileBio.Goal;
+                _profileModel.ActivityLevel = profileBio.ActivityLevel;
+                _profileModel.DailyCalorieTarget = profileBio.DailyCalorieTarget;
+            }
+
+            var al = await Http.GetFromJsonAsync<List<LookupItem>>("api/profile/allergies");
+            if (al != null) _selectedAllergyIds = al.Select(x => x.Id).ToList();
+            
+            var dt = await Http.GetFromJsonAsync<List<LookupItem>>("api/profile/diet-preferences");
+            if (dt != null) _selectedDietIds = dt.Select(x => x.Id).ToList();
+        }
+        catch
+        {
+            // ignored
+        }
+
+        _isLoading = false;
+    }
+
+    private static void ToggleItem(List<Guid> list, Guid id) {
+        if (list.Contains(id)) list.Remove(id); else list.Add(id);
+    }
+
+    private async Task HandleSaveAll() {
+        _isSaving = true;
+        _statusMessage = "";
+        try {
+            var personalInfoRequest = new UpdatePersonalInfoRequest {
+                FullName = _profileModel.FullName,
+                Gender = _profileModel.Gender,
+                DateOfBirth = _profileModel.DateOfBirth
+            };
+            
+            var identityResponse = await Http.PutAsJsonAsync("api/profile/personal-info", personalInfoRequest);
+            if (!identityResponse.IsSuccessStatusCode) {
+                throw new Exception("Failed to update personal information.");
+            }
+
+            var bioResponse = await Http.PutAsJsonAsync("api/profile", _profileModel);
+            if (!bioResponse.IsSuccessStatusCode) {
+                var error = await bioResponse.Content.ReadAsStringAsync();
+                throw new Exception($"Failed to update biometrics: {error}");
+            }
+
+            await Http.PutAsJsonAsync("api/profile/allergies", new UpdateUserAllergiesRequest { AllergyIds = _selectedAllergyIds });
+            await Http.PutAsJsonAsync("api/profile/diet-preferences", new UpdateUserDietPreferencesRequest { DietPreferenceIds = _selectedDietIds });
+            
+            _statusMessage = "✅ Profile updated successfully!";
+            StateHasChanged();
+            await Task.Delay(2000);
+            _statusMessage = "";
+        } 
+        catch (Exception ex) { 
+            _statusMessage = "❌ Error: " + ex.Message; 
+        }
+        _isSaving = false;
+    }
+}

@@ -29,6 +29,13 @@ public class User
         DateOfBirth = dateOfBirth.ToUniversalTime();
         Gender = gender;
         Role = RoleType.User;
+        Subscription = new Subscription(this);
     }
-    
+
+    public void Update(string fullName, DateTime dateOfBirth, Gender gender)
+    {
+        FullName = fullName;
+        DateOfBirth = new DateTime(dateOfBirth.Year, dateOfBirth.Month, dateOfBirth.Day, 12, 0, 0, DateTimeKind.Utc);
+        Gender = gender;
+    }
 }

@@ -6,7 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 using NutritionAdvisor.Application.Allergies.Commands.UpdateUserAllergies;
 using NutritionAdvisor.Application.Allergies.Queries.GetUserAllergies;
 using NutritionAdvisor.Application.Profiles.Commands.CreateProfile;
+using NutritionAdvisor.Application.Profiles.Commands.UpdatePersonalInfo;
 using NutritionAdvisor.Application.Profiles.Commands.UpdateProfile;
+using NutritionAdvisor.Application.Profiles.DTOs;
+using NutritionAdvisor.Application.Profiles.Queries.GetPersonalInfo;
 using NutritionAdvisor.Application.Profiles.Queries.GetProfile;
 using NutritionAdvisor.Application.UserDietPreferences.Commands.UpdateUserDietPreferences;
 using NutritionAdvisor.Application.UserDietPreferences.Queries.GetUserDietPreferences;
@@ -159,6 +162,45 @@ public class ProfileController(IMediator mediator) : ControllerBase
             await mediator.Send(command);
             
             return Ok(new { Message = "Diet preferences updated successfully." });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
+    
+    [HttpGet("personal-info")]
+    public async Task<IActionResult> GetPersonalInfo()
+    {
+        try
+        {
+            var userId = GetUserId();
+            var query = new GetPersonalInfoQuery(userId);
+            var result = await mediator.Send(query);
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
+
+    [HttpPut("personal-info")]
+    public async Task<IActionResult> UpdatePersonalInfo([FromBody] UpdatePersonalInfoRequest request)
+    {
+        try
+        {
+            var userId = GetUserId();
+            var command = new UpdatePersonalInfoCommand(
+                userId, 
+                request.FullName, 
+                request.Gender, 
+                request.DateOfBirth);
+
+            await mediator.Send(command);
+
+            return Ok(new { Message = "Personal information updated successfully." });
         }
         catch (Exception ex)
         {
