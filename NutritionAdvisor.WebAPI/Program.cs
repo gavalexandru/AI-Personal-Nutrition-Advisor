@@ -15,7 +15,6 @@ builder.Services.AddControllers();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(RegisterCommand).Assembly));
 
-//  Config CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("BlazorClientPolicy", policy =>
@@ -27,7 +26,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Config JWT to be able to read from Cookie
+
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -43,7 +42,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Secret"]!))
         };
         
-        // Extract token from cookie
+        
         options.Events = new JwtBearerEvents
         {
             OnMessageReceived = context =>
@@ -58,6 +57,8 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddHttpClient<NutritionAdvisor.Application.Common.Interfaces.IAiRecommendationService, NutritionAdvisor.Infrastructure.Services.PythonAiRecommendationService>();
 
 var app = builder.Build();
 

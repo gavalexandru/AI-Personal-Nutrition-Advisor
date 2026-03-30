@@ -1,9 +1,10 @@
 namespace NutritionAdvisor.Domain.Entities;
 
-public class RecipeIngredient
+public class RecipeIngredient(Recipe recipe, Ingredient ingredient, double quantityInGrams)
 {
-    public Recipe Recipe { get; private set; } = null!;
-    public Ingredient Ingredient { get; private set; } = null!;
+    private RecipeIngredient() : this(null!, null!, 0) { }
+    public Recipe Recipe { get; private set; } = recipe;
+    public Ingredient Ingredient { get; private set; } = ingredient;
 
-    public double QuantityInGrams { get; private set; }
+    public double QuantityInGrams { get; private set; } = quantityInGrams;
 }
