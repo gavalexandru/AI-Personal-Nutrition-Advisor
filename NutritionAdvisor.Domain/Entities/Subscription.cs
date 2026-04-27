@@ -24,4 +24,12 @@ public class Subscription
         EndDate = null;
     }
     
+    public void UpgradeToPremium()
+    {
+        Type = SubscriptionType.Premium;
+        IsActive = true;
+        StartDate = DateTime.UtcNow;
+        EndDate = DateTime.UtcNow.AddMonths(1); 
+    }
+    
 }

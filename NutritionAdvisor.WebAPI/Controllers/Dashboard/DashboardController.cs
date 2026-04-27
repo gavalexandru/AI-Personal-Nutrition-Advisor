@@ -30,7 +30,14 @@ public class DashboardController(IMediator mediator) : ControllerBase
         var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!Guid.TryParse(userIdString, out var userId)) return Unauthorized();
 
-        await mediator.Send(new GenerateMealPlanCommand(userId, planType));
-        return Ok();
+        try
+        {
+            await mediator.Send(new GenerateMealPlanCommand(userId, planType));
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 }

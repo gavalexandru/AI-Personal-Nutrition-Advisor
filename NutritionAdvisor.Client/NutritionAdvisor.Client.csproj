@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\NutritionAdvisor.Application\NutritionAdvisor.Application.csproj" />
     <ProjectReference Include="..\NutritionAdvisor.Domain\NutritionAdvisor.Domain.csproj" />
   </ItemGroup>
 

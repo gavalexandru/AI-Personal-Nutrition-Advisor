@@ -1,6 +1,6 @@
 @page "/"
 @using NutritionAdvisor.Client.Auth
-@using NutritionAdvisor.Client.Models.Dashboard
+@using NutritionAdvisor.Application.Profiles.DTOs
 @using NutritionAdvisor.Domain.Enums
 @inject HttpClient Http
 @inject NavigationManager NavManager
@@ -11,9 +11,19 @@
     <div class="profile-header d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
         <div class="mb-3 mb-md-0">
             <h2 class="mb-1">Welcome back, @_userName! 👋</h2>
-            <p class="text-muted m-0">Here's your generated meal plan.</p>
+            <p class="text-muted m-0">
+                Current Plan: <span class="badge @(_isPremium ? "bg-warning text-dark" : "bg-secondary")">
+                    @(_isPremium ? "⭐ PREMIUM" : "FREE")
+                </span>
+            </p>
         </div>
         <div class="d-flex gap-3 align-items-center">
+            @if (!_isPremium)
+            {
+                <button @onclick="GoPremium" class="btn btn-warning fw-bold d-flex align-items-center gap-2 shadow-sm">
+                    ⭐ Upgrade to Premium
+                </button>
+            }
             <a href="/user-profile" class="btn btn-outline-dark d-flex align-items-center gap-2">
                 👤 My Profile
             </a>
@@ -23,7 +33,14 @@
         </div>
     </div>
 
-    
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <strong>Action Denied!</strong> @_errorMessage
+            <button type="button" class="btn-close" @onclick="() => _errorMessage = null"></button>
+        </div>
+    }
+
     <div class="d-flex flex-wrap justify-content-between align-items-center mt-4 mb-4 gap-3">
         <h3 class="profile-section-title m-0">🍽️ Your Meal Plan</h3>
         
@@ -33,9 +50,12 @@
                 <button class="btn btn-outline-primary" @onclick="() => GeneratePlan(PlanType.Daily)">
                     🔄 Regenerate 1 Day
                 </button>
-                <button class="btn btn-primary" @onclick="() => GeneratePlan(PlanType.Weekly)">
-                    🔄 Regenerate 7 Days
-                </button>
+                @if (_isPremium)
+                {
+                    <button class="btn btn-primary" @onclick="() => GeneratePlan(PlanType.Weekly)">
+                        🔄 Regenerate 7 Days
+                    </button>
+                }
             </div>
         }
     </div>
@@ -49,7 +69,6 @@
     }
     else if (_planDays.Any())
     {
-        
         @foreach (var day in _planDays)
         {
             <div class="mb-5">
@@ -86,14 +105,17 @@
     {
         <div class="alert alert-light text-center border py-5 shadow-sm">
             <h4 class="fw-bold mb-3">No Active Meal Plan</h4>
-            <p class="text-muted mb-4">You don't have a meal plan generated yet. Let our AI build one for you based on your profile preferences.</p>
+            <p class="text-muted mb-4">You don't have a meal plan generated yet.</p>
             <div class="d-flex justify-content-center gap-3">
                 <button class="btn btn-outline-success" @onclick="() => GeneratePlan(PlanType.Daily)">
                     Generate Daily Plan
                 </button>
-                <button class="btn btn-success" @onclick="() => GeneratePlan(PlanType.Weekly)">
-                    Generate Weekly Plan
-                </button>
+                @if (_isPremium)
+                {
+                    <button class="btn btn-success" @onclick="() => GeneratePlan(PlanType.Weekly)">
+                        Generate Weekly Plan
+                    </button>
+                }
             </div>
         </div>
     }
@@ -101,13 +123,13 @@
 
 @code {
     private string _userName = "User";
-    
+    private bool _isPremium = false;
+    private string? _errorMessage;
     
     private List<MealPlanDayDto> _planDays = [];
     private bool _isLoading = true;
     private bool _isGenerating = false;
 
-    
     public class MealPlanDayDto
     {
         public int Day { get; set; }
@@ -125,12 +147,31 @@
         public double Carbs { get; set; }
     }
 
+    public class CheckoutResponse 
+    { 
+        public string Url { get; set; } = ""; 
+    }
+
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         _userName = authState.User.Identity?.Name ?? "User";
 
+        await LoadUserInfo();
         await LoadCurrentPlan();
+    }
+
+    private async Task LoadUserInfo()
+    {
+        try
+        {
+            var info = await Http.GetFromJsonAsync<PersonalInfoDto>("api/profile/personal-info");
+            if (info != null)
+            {
+                _isPremium = info.Subscription == SubscriptionType.Premium;
+            }
+        }
+        catch { }
     }
 
     private async Task LoadCurrentPlan()
@@ -138,55 +179,67 @@
         _isLoading = true;
         try
         {
-            
             var response = await Http.GetFromJsonAsync<List<MealPlanDayDto>>("api/dashboard/current-plan");
             if (response != null)
             {
                 foreach(var day in response)
                 {
-                    
                     day.Meals = day.Meals.OrderBy(m => GetMealSortOrder(m.MealType)).ToList();
                 }
                 _planDays = response;
             }
         }
-        catch
-        {
-            _planDays = [];
-        }
+        catch { _planDays = []; }
         _isLoading = false;
         StateHasChanged();
     }
 
-    private static int GetMealSortOrder(string mealType)
+    private static int GetMealSortOrder(string mealType) => mealType?.ToLower() switch
     {
-        return mealType?.ToLower() switch
-        {
-            "breakfast" => 1,
-            "lunch" => 2,
-            "snack" => 3,
-            "dinner" => 4,
-            _ => 5
-        };
-    }
+        "breakfast" => 1, "lunch" => 2, "snack" => 3, "dinner" => 4, _ => 5
+    };
 
     private async Task GeneratePlan(PlanType type)
     {
+        _errorMessage = null;
         _isGenerating = true;
-        StateHasChanged(); // Fortam update-ul de UI ca sa apara textul de "Generating..."
+        StateHasChanged(); 
 
-        try
+        var response = await Http.PostAsJsonAsync("api/dashboard/generate-plan", type);
+        if (response.IsSuccessStatusCode)
         {
-            var response = await Http.PostAsJsonAsync("api/dashboard/generate-plan", type);
-            if (response.IsSuccessStatusCode)
-            {
-                await LoadCurrentPlan();
-            }
+            await LoadCurrentPlan();
         }
-        catch { }
+        else
+        {
+            // Extragem eroarea (cea setată în Backend cu "throw new Exception(...)")
+            var errorResult = await response.Content.ReadAsStringAsync();
+            _errorMessage = errorResult;
+            
+            // Daca raspunsul API-ului contine JSON cu detalii de eroare default, curatam mesajul:
+            if (_errorMessage.Contains("Premium")) _errorMessage = "Weekly plans are for Premium users only.";
+            if (_errorMessage.Contains("1 plan per day")) _errorMessage = "Free users can only generate 1 plan per day. Upgrade to Premium!";
+        }
         
         _isGenerating = false;
         StateHasChanged();
+    }
+
+    private async Task GoPremium()
+    {
+        try
+        {
+            var response = await Http.PostAsync("api/payments/create-checkout", null);
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<CheckoutResponse>();
+                if (result != null && !string.IsNullOrEmpty(result.Url))
+                {
+                    NavManager.NavigateTo(result.Url, forceLoad: true);
+                }
+            }
+        }
+        catch { }
     }
 
     private async Task HandleLogout()

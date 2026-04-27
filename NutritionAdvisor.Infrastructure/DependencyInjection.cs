@@ -19,6 +19,8 @@ public static class DependencyInjection
         
         services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
         
+        services.AddScoped<IPaymentService, Services.StripePaymentService>();
+        
         services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
         
