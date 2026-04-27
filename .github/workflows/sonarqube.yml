@@ -42,12 +42,12 @@ jobs:
           pip install pytest pytest-cov pandas fastapi uvicorn kagglehub
           
           pytest --cov=. --cov-report=xml:coverage-python.xml
-        continue-on-error: true # Permite rularea mai departe dacă testele pică inițial
+        continue-on-error: true 
 
       - name: Begin SonarCloud Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        # Aici combinăm cheile tale și îi spunem unde să caute rapoartele
+        
         run: |
           dotnet sonarscanner begin \
             /k:"gavalexandru_AI-Personal-Nutrition-Advisor" \
@@ -76,3 +76,5 @@ jobs:
         timeout-minutes: 5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          scanMetadataReportFile: .sonarqube/out/.sonar/report-task.txt
