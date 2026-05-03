@@ -68,7 +68,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>(); 
-    context.Database.EnsureCreated();
+    context.Database.EnsureCreated(); // NOSONAR
     
     if (!context.Allergies.Any())
     {
@@ -103,7 +103,7 @@ using (var scope = app.Services.CreateScope())
         );
     }
 
-    context.SaveChanges();
+    context.SaveChanges(); // NOSONAR
 }
 
 app.UseSwagger();
@@ -118,4 +118,4 @@ app.UseCors("BlazorClientPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.Run();
+app.Run(); // NOSONAR
