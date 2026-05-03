@@ -39,7 +39,7 @@ jobs:
 
       - name: Run Python Tests & Coverage
         run: |
-          pip install --only-binary :all: pytest==8.0.2 pytest-cov==4.1.0 pandas==2.2.1 fastapi==0.110.0 uvicorn==0.27.1 kagglehub==0.2.1
+          pip install --require-hashes --only-binary :all: -r requirements.txt
           pytest --cov=. --cov-report=xml:coverage-python.xml
         continue-on-error: true 
 
