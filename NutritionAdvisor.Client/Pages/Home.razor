@@ -171,7 +171,10 @@
                 _isPremium = info.Subscription == SubscriptionType.Premium;
             }
         }
-        catch { }
+        catch
+        {
+            // ignored
+        }
     }
 
     private async Task LoadCurrentPlan()
@@ -239,7 +242,10 @@
                 }
             }
         }
-        catch { }
+        catch
+        {
+            // ignored
+        }
     }
 
     private async Task HandleLogout()
