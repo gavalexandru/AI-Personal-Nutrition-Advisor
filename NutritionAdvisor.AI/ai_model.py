@@ -160,6 +160,8 @@ class MealRecommender:
         df = self.df.copy()
         daily_calories = float(daily_calories)
 
+        safe_days = max(1, min(int(days), 7))
+
         # filter allergies & diets
         avoid_keywords = set()
         
@@ -223,7 +225,7 @@ class MealRecommender:
 
        
         # select top meals
-        pool_size = max(days * 4, 10)
+        pool_size = max(safe_days * 4, 10)
         top_b = breakfast_df.nsmallest(pool_size, 'score').sample(frac=1).to_dict('records')
         top_s = snack_df.nsmallest(pool_size, 'score').sample(frac=1).to_dict('records')
         top_l = lunch_df.nsmallest(pool_size, 'score').sample(frac=1).to_dict('records')
@@ -233,7 +235,7 @@ class MealRecommender:
         # build plan
         plan = []
 
-        for i in range(days):
+        for i in range(safe_days):
             def pick(lst, idx):
                 return lst[idx % len(lst)] if lst else None
 

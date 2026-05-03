@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List
 from ai_model import MealRecommender
 
@@ -10,7 +10,7 @@ class RecommendationRequest(BaseModel):
     dailyCalorieTarget: float
     allergies: List[str] = []
     dietPreferences: List[str] = []
-    days: int
+    days: int = Field(..., ge=1, le=7, description="Number of days for the meal plan")
     goal: str
     activityLevel: str
 
