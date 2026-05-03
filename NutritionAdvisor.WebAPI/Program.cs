@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using NutritionAdvisor.Application.Auth.Commands.Register;
 using NutritionAdvisor.Domain.Entities;
@@ -68,9 +69,9 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>(); 
-    context.Database.EnsureCreated(); // NOSONAR
+    await context.Database.EnsureCreatedAsync(); 
     
-    if (!context.Allergies.Any())
+    if (!await context.Allergies.AnyAsync())
     {
         context.Allergies.AddRange(
             new Allergy("Peanuts"),               
@@ -89,7 +90,7 @@ using (var scope = app.Services.CreateScope())
         );
     }
     
-    if (!context.DietPreferences.Any())
+    if (!await context.DietPreferences.AnyAsync())
     {
         context.DietPreferences.AddRange(
             new DietPreference(DietPreferenceType.Balanced),
@@ -103,7 +104,7 @@ using (var scope = app.Services.CreateScope())
         );
     }
 
-    context.SaveChanges(); // NOSONAR
+    await context.SaveChangesAsync(); 
 }
 
 app.UseSwagger();
@@ -118,4 +119,4 @@ app.UseCors("BlazorClientPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.Run(); // NOSONAR
+await app.RunAsync(); 
