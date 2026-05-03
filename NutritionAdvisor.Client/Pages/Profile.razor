@@ -47,7 +47,7 @@
                         <InputSelect class="form-control-custom" @bind-Value="_profileModel.ActivityLevel">
                             @foreach (var level in Enum.GetValues<ActivityLevel>())
                             {
-                                var displayLevel = System.Text.RegularExpressions.Regex.Replace(level.ToString(), "([a-z])([A-Z])", "$1 $2");
+                                var displayLevel = System.Text.RegularExpressions.Regex.Replace(level.ToString(), "([a-z])([A-Z])", "$1 $2", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(1));
                                 <option value="@level">@displayLevel</option>
                             }
                         </InputSelect>
@@ -57,7 +57,7 @@
                         <InputSelect class="form-control-custom" @bind-Value="_profileModel.Goal">
                             @foreach (var goal in Enum.GetValues<GoalType>())
                             {
-                                var displayGoal = System.Text.RegularExpressions.Regex.Replace(goal.ToString(), "([a-z])([A-Z])", "$1 $2");
+                                var displayGoal = System.Text.RegularExpressions.Regex.Replace(goal.ToString(), "([a-z])([A-Z])", "$1 $2", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(1));
                                 <option value="@goal">@displayGoal</option>
                             }
                         </InputSelect>

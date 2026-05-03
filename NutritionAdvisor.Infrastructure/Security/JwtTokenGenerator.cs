@@ -13,12 +13,8 @@ public class JwtTokenGenerator(IConfiguration configuration) : IJwtTokenGenerato
     public string GenerateToken(User user)
     {
         var jwtSettings = configuration.GetSection("JwtSettings");
-        var secret = jwtSettings["Secret"];
-        
-        if (string.IsNullOrEmpty(secret))
-        {
-            throw new InvalidOperationException("JWT Secret is not properly configured!");
-        }
+        var secret = Environment.GetEnvironmentVariable("JWT_SECRET") 
+                     ?? throw new InvalidOperationException("JWT Secret is not properly configured!");
         
         var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var credentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);

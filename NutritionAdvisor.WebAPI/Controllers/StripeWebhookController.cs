@@ -11,14 +11,14 @@ namespace NutritionAdvisor.WebAPI.Controllers;
 public class StripeWebhookController(IApplicationDbContext context, IConfiguration config) : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index([FromHeader(Name = "Stripe-Signature")] string stripeSignature)
     {
         var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
         var endpointSecret = config["Stripe:WebhookSecret"]; 
 
         try
         {
-            var stripeEvent = EventUtility.ConstructEvent(json, Request.Headers["Stripe-Signature"], endpointSecret);
+            var stripeEvent = EventUtility.ConstructEvent(json, stripeSignature, endpointSecret);
 
             if (stripeEvent.Type == EventTypes.CheckoutSessionCompleted)
             {

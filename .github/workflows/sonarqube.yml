@@ -39,20 +39,18 @@ jobs:
 
       - name: Run Python Tests & Coverage
         run: |
-          pip install pytest pytest-cov pandas fastapi uvicorn kagglehub
-          
+          pip install --only-binary :all: pytest==8.0.2 pytest-cov==4.1.0 pandas==2.2.1 fastapi==0.110.0 uvicorn==0.27.1 kagglehub==0.2.1
           pytest --cov=. --cov-report=xml:coverage-python.xml
         continue-on-error: true 
 
       - name: Begin SonarCloud Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        
         run: |
           dotnet sonarscanner begin \
             /k:"gavalexandru_AI-Personal-Nutrition-Advisor" \
             /o:"gavalexandru" \
-            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
             /d:sonar.python.coverage.reportPaths="coverage-python.xml"
@@ -69,10 +67,10 @@ jobs:
       - name: End SonarCloud Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+        run: dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"
 
       - name: SonarCloud Quality Gate check
-        uses: sonarsource/sonarqube-quality-gate-action@master
+        uses: sonarsource/sonarqube-quality-gate-action@d304d050d930b02a896b0f85935344f023928496
         timeout-minutes: 5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

@@ -28,12 +28,8 @@ builder.Services.AddCors(options =>
 
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var jwtSecret = jwtSettings["Secret"];
-
-if (string.IsNullOrEmpty(jwtSecret))
-{
-    throw new InvalidOperationException("JWT Secret is not properly configured!");
-}
+var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") 
+                ?? throw new InvalidOperationException("JWT Secret is not properly configured!");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
