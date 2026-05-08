@@ -120,3 +120,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 await app.RunAsync(); 
+
+public partial class Program { }

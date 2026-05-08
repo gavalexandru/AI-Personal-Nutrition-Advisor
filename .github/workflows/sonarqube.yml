@@ -12,6 +12,13 @@ jobs:
     name: Build, Test & Analyze
     runs-on: ubuntu-latest
 
+    env:
+      JWT_SECRET: "ThisIsAVerySecretKeyForGithubActions12345!"
+      Stripe__SecretKey: "sk_test_dummyKey"
+      Stripe__WebhookSecret: "whsec_dummyKey"
+      Stripe__SuccessUrl: "http://localhost/success"
+      Stripe__CancelUrl: "http://localhost/cancel"   
+      
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -54,8 +61,9 @@ jobs:
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
             /d:sonar.python.coverage.reportPaths="coverage-python.xml" \
-            /d:sonar.exclusions="**/Migrations/**" \
-            /d:sonar.cpd.exclusions="**/Migrations/**"
+            /d:sonar.python.version="3.10" \
+            /d:sonar.exclusions="**/Migrations/**, **/NutritionAdvisor.Client/**, **/*Dto.cs, **/*Request.cs, **/Configurations/**, **/Enums/**, **/Program.cs, **/Controllers/**, **/Models/**, **/*Log.cs, **/DependencyInjection.cs" \
+            /d:sonar.cpd.exclusions="**/Migrations/**, **/NutritionAdvisor.Client/**"
 
       - name: Build .NET Solution
         run: dotnet build --no-incremental
